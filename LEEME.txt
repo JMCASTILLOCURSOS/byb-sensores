@@ -1,0 +1,57 @@
+BYB-NORTE MONITOR v4.2  —  Borybor Norte
+=======================================
+
+CONTENIDO
+  index.html, app.css, app.js, link.js, report.js   la aplicación
+  sw.js, manifest.webmanifest, icons/               lo que la hace instalable y offline
+  lib/                                              Chart.js y jsPDF (incluidos, no necesita internet)
+  firmware/                                         TX y RX para el ESP32-C3
+
+1) PUBLICAR LA APP (una sola vez)
+   Para que se pueda INSTALAR y para que el navegador permita Bluetooth/USB,
+   la app debe abrirse desde una dirección https:// (no desde un archivo suelto).
+   La forma más simple y gratuita:
+     - Entra a https://app.netlify.com/drop  (o Cloudflare Pages / GitHub Pages)
+     - Arrastra la CARPETA completa "BYB-NORTE-App"
+     - Te entrega una dirección https://... → esa es tu app.
+   (Abrir index.html con doble clic también funciona para USB en PC, pero sin instalación.)
+
+2) INSTALAR
+   PC (Windows/Mac/Linux): abrir la dirección en Chrome o Edge → botón "INSTALAR APP"
+     (o el ícono de instalar en la barra de direcciones). Queda con ícono propio,
+     ventana propia, accesos directos y funciona sin internet.
+   Android: abrir en Chrome → "INSTALAR APP" (o menú ⋮ → Instalar aplicación).
+   iPhone/iPad: Safari permite instalar (Compartir → Agregar a pantalla de inicio),
+     pero NO tiene Bluetooth ni USB web. Para Bluetooth en iPhone hace falta un
+     navegador con Bluetooth web (por ejemplo Bluefy).
+
+3) CONECTAR EL RECEPTOR
+   Botón CONECTAR RECEPTOR → USB (cable)  o  Bluetooth (BLE).
+   En PC con USB, la app reconecta sola el receptor ya autorizado al abrirse.
+   Bluetooth: el receptor aparece como "BYB-NORTE-RX".
+
+4) FIRMWARE
+   TX: firmware/TX_Sensores_NRF24_ESP32.ino          (librerías: RF24, Adafruit MAX31865)
+   RX: firmware/RX_Receptor_NRF24_ESP32_BLE.ino      (librería: RF24; ya no usa ArduinoJson)
+   IDE: placa "ESP32C3 Dev Module", USB CDC On Boot = Enabled.
+   Si el RX dice "sketch too big": Partition Scheme = "Huge APP (3MB No OTA)".
+
+5) ACTUALIZAR LA APP
+   Vuelve a arrastrar la carpeta a Netlify (mismo sitio). La app instalada muestra
+   un aviso "Hay una versión nueva" → ACTUALIZAR.
+
+6) NOVEDADES v4.1
+   - Campo "Armador" en los datos del informe (pantalla, PDF y Word).
+   - Nombres de sensor editables (campo con lápiz en cada tarjeta).
+   - Alertas por sensor: amarilla 45 °C y roja 50 °C por defecto (editables).
+     Colorean la tarjeta, un banner superior y la tabla de registro.
+   - Botón INSTALAR APP corregido (muestra instrucciones si el navegador no ofrece instalar).
+   - Bluetooth: el ESP32-C3 Super Mini SI tiene Bluetooth (BLE). En Android usa Chrome,
+     con Bluetooth y Ubicacion activados.
+
+7) NOVEDADES v4.2
+   - Nombres por defecto: S1 Lado Carga, S2 Lado Libre, S3 Estator, S4 Auxiliar (editables).
+   - Sensores en pantalla y en informes en cuadricula 2 x 2.
+   - El informe Word ahora es un .docx real, con logo y graficos. El PDF lleva el logo en todas las hojas.
+   - Los nombres que ya tenias guardados (los antiguos por defecto) pasan a los nuevos automaticamente;
+     si ya los habias cambiado a mano, se respetan.

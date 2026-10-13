@@ -1,0 +1,20 @@
+{
+  "id": "./",
+  "name": "BYB-NORTE Monitor — Borybor Norte",
+  "short_name": "BYB-NORTE",
+  "description": "Monitoreo de temperatura industrial PT100 x4 + RPM con receptor NRF24 (USB y Bluetooth).",
+  "prefer_related_applications": false,
+  "lang": "es-CL",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0f1c33",
+  "theme_color": "#0f1c33",
+  "categories": ["utilities", "business"],
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

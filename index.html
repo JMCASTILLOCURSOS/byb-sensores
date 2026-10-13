@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>BYB-NORTE | Monitoreo de Temperatura Industrial</title>
+<meta name="theme-color" content="#0f1c33">
+<meta name="description" content="Monitoreo de temperatura PT100 x4 y RPM — BYB-NORTE">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/favicon.ico">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="BYB-NORTE">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <img src="img/logo.png" alt="Borybor Norte">
+    <div class="title">SISTEMA DE MONITOREO DE TEMPERATURA INDUSTRIAL
+      <small>BYB-NORTE &middot; PT100 x4 + RPM &middot; RECEPTOR NRF24L01</small>
+    </div>
+  </div>
+  <div class="head-right">
+    <span class="badge sim" id="modeBadge"><span class="badge-dot"></span><span id="modeBadgeText">DEMO</span></span>
+    <div class="conn-wrap">
+      <button class="btn btn-connect" id="btnConnect" aria-haspopup="true" aria-expanded="false">&#9211; CONECTAR RECEPTOR</button>
+      <div class="conn-menu" id="connMenu" hidden>
+        <button class="menu-item" id="menuUsb">&#128268; USB (cable)<small id="usbHint">Receptor conectado al computador.</small></button>
+        <button class="menu-item" id="menuBle">&#128246; Bluetooth (BLE)<small id="bleHint">Receptor "BYB-NORTE-RX" por Bluetooth.</small></button>
+        <button class="menu-item" id="menuDemo">&#9654; Modo demo<small>Datos simulados para probar la pantalla.</small></button>
+      </div>
+    </div>
+    <button class="btn btn-install only-browser" id="btnInstall">&#11015; INSTALAR APP</button>
+    <span class="clock mono" id="clock">--:--:--</span>
+    <button class="btn btn-ghost" id="btnPdfTop">&#11015; PDF</button>
+    <button class="btn btn-word" id="btnWordTop">&#11015; WORD</button>
+  </div>
+</header>
+
+<div class="alertbanner" id="alertBanner" role="alert" aria-live="polite" hidden></div>
+
+<div class="statusstrip">
+  <div class="left">
+    <span><span class="dot dot-sim" id="stripModeDot"></span><span id="stripModeText">MODO DEMO</span></span>
+    <span><span class="dot dot-rec-off" id="stripRecDot"></span><span id="stripRecText">REGISTRO DETENIDO</span></span>
+  </div>
+  <div class="right">
+    <span>ÚLTIMA LECTURA: <span id="stripLastReading">--:--:--</span></span>
+    <span>LECTURAS: <span id="stripReadingsCount">0</span></span>
+    <span>REGISTROS GUARDADOS: <span id="stripLogCount">0</span></span>
+  </div>
+</div>
+
+<details class="metaDetails" id="metaDetails" open>
+<summary>DATOS DEL INFORME &mdash; toca para editar (empresa, OT, operador...)</summary>
+<div class="metabar">
+  <div class="meta-field"><label for="metaEmpresa">Empresa</label><input id="metaEmpresa" type="text" placeholder="Ej: Minera Ejemplo Norte SpA" value=""></div>
+  <div class="meta-field"><label for="metaOT">N° OT / Faena</label><input id="metaOT" type="text" placeholder="Ej: OT-0000" value=""></div>
+  <div class="meta-field"><label for="metaOperador">Operador</label><input id="metaOperador" type="text" placeholder="Nombre del operador" value=""></div>
+  <div class="meta-field"><label for="metaArmador">Armador</label><input id="metaArmador" type="text" placeholder="Nombre del armador" value=""></div>
+  <div class="meta-field"><label for="metaEquipo">Equipo / Activo</label><input id="metaEquipo" type="text" placeholder="Ej: Motor eléctrico principal" value="Motor eléctrico principal"></div>
+  <div class="meta-field"><label for="metaGrasa">Grasa aplicada (tipo)</label><input id="metaGrasa" type="text" placeholder="Ej: Shell Gadus S2 V220 2" value=""></div>
+</div>
+</details>
+
+<div class="layout">
+  <div class="main-col">
+
+    <div class="sensor-grid" id="sensorGrid"></div>
+
+    <div class="card rpm-card">
+      <div class="rpm-left">
+        <div class="rpm-icon">⟳</div>
+        <div>
+          <div class="rpm-label">RPM &middot; SENSOR TCRT5000</div>
+          <div class="rpm-value"><span id="rpmValue">--</span><span class="unit">rpm</span></div>
+        </div>
+      </div>
+      <div class="rpm-right">
+        <div class="rpm-stat">
+          <div class="k">RPM NOMINAL</div>
+          <input type="number" inputmode="decimal" id="rpmNominal" value="1450">
+        </div>
+        <div class="rpm-stat">
+          <div class="k">RPM REGISTRADA (PROM. EN MARCHA)</div>
+          <div class="v" id="rpmAvg">--</div>
+        </div>
+        <div class="rpm-stat">
+          <div class="k">DESVIACIÓN</div>
+          <div class="v" id="rpmDelta">--</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card combined-card">
+      <div class="card-title">
+        <h3>Gráfico combinado &middot; 4 sensores</h3>
+        <div>
+          <span class="legend-chip"><span class="sw" style="background:var(--s1)"></span><span id="legS1">S1</span></span>
+          <span class="legend-chip"><span class="sw" style="background:var(--s2)"></span><span id="legS2">S2</span></span>
+          <span class="legend-chip"><span class="sw" style="background:var(--s3)"></span><span id="legS3">S3</span></span>
+          <span class="legend-chip"><span class="sw" style="background:var(--s4)"></span><span id="legS4">S4</span></span>
+        </div>
+      </div>
+      <div class="combined-chart-wrap"><canvas id="combinedChart"></canvas></div>
+    </div>
+
+    <div class="card table-card">
+      <div class="table-head-bar">
+        <h3>Tabla de registros</h3>
+        <span class="hint"><span class="lg lg-warn">AMARILLO = alerta amarilla</span> <span class="lg lg-crit">ROJO = alerta roja</span></span>
+      </div>
+      <div class="table-scroll">
+        <table class="datatable" id="dataTable">
+          <thead><tr id="tableHeadRow"></tr></thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+        <div class="table-empty" id="tableEmpty">No hay registros aún. Presiona INICIAR REGISTRO para comenzar a guardar filas.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="side-col">
+    <div class="card">
+      <div class="panel-title">Registro de datos</div>
+      <div class="field-row">
+        <label for="intervalSelect">Intervalo de guardado</label>
+        <select id="intervalSelect">
+          <option value="5">Cada 5 minutos</option>
+          <option value="10" selected>Cada 10 minutos</option>
+          <option value="20">Cada 20 minutos</option>
+          <option value="30">Cada 30 minutos</option>
+        </select>
+      </div>
+      <button class="rec-btn start" id="recBtn">▶ INICIAR REGISTRO</button>
+      <button class="btn-manual" id="btnManual">+ Guardar fila manual ahora</button>
+      <button class="btn-manual" id="btnNewSession">⟲ Nueva sesión (borrar datos)</button>
+      <div class="export-hint">En demo el intervalo va acelerado (1 min = 1 seg). Con el receptor real se respeta en minutos. Los datos se guardan en este equipo: si cierras la app o se corta la energía, la sesión se recupera al abrirla.</div>
+    </div>
+
+    <div class="card">
+      <div class="panel-title">Log de eventos</div>
+      <div class="eventlog" id="eventLog"></div>
+    </div>
+
+    <div class="card">
+      <div class="panel-title">Resumen de estado</div>
+      <div id="summaryList"></div>
+    </div>
+
+    <div class="card">
+      <div class="panel-title">Informe</div>
+      <div class="rep-row">
+        <button class="export-btn pdf" id="btnPdf">⬇ PDF</button>
+        <button class="export-btn" id="btnWord">⬇ WORD</button>
+      </div>
+      <div class="sim-warn" id="simWarn" hidden>Estás en modo DEMO: el informe saldrá marcado como datos simulados.</div>
+      <div class="export-hint">Incluye datos de la empresa, resumen por sensor, registro de alertas, gráficos de toda la sesión, RPM nominal vs. registrada y la tabla completa. En celular el PDF es el formato recomendado.</div>
+    </div>
+  </div>
+</div>
+
+<footer class="pagefoot">
+  <span>BYB-NORTE MONITOR v4.2 &middot; ESP32-C3 + NRF24L01 &middot; 4x PT100 3-wire MAX31865 + RPM TCRT5000</span>
+  <span id="footDate">—</span>
+</footer>
+
+<nav class="mobilebar" aria-label="Acciones">
+  <button class="mb-rec" id="mbRec">▶ REGISTRO</button>
+  <button class="mb-pdf" id="mbPdf">⬇ PDF</button>
+  <button class="mb-word" id="mbWord">⬇ WORD</button>
+</nav>
+
+<div class="modal" id="installModal" hidden>
+  <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="installTitle">
+    <h3 id="installTitle">Instalar la app</h3>
+    <div id="installBody"></div>
+    <button class="btn btn-connect" id="installClose">ENTENDIDO</button>
+  </div>
+</div>
+
+<div class="toast" id="toast" hidden><span id="toastText"></span><button id="toastBtn">ACTUALIZAR</button></div>
+
+<script src="lib/chart.umd.js"></script>
+<script src="lib/jspdf.umd.min.js"></script>
+<script src="lib/jspdf.plugin.autotable.min.js"></script>
+<script src="app.js"></script>
+<script src="link.js"></script>
+<script src="report.js"></script>
+</body>
+</html>
